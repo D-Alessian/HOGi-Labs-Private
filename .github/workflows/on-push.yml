@@ -1,0 +1,40 @@
+name: Bump, Build and Publish on Push to master
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - ".gitignore"
+      - ".github/**"
+      - "README.md"
+      - "LICENSE"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: on-push-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    if: ${{ github.event.sender.type != 'Bot' && !endsWith(github.actor, '[bot]') && github.actor != 'dependabot[bot]' }}
+    uses: ./.github/workflows/bump.yml
+    secrets: inherit
+
+  build:
+    if: ${{ github.event.sender.type != 'Bot' && !endsWith(github.actor, '[bot]') && github.actor != 'dependabot[bot]' }}
+    needs: bump
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  publish:
+    if: ${{ github.event.sender.type != 'Bot' && !endsWith(github.actor, '[bot]') && github.actor != 'dependabot[bot]' }}
+    needs: build
+    uses: ./.github/workflows/publish.yml
+    with:
+      RELEASE_TAG: ${{ needs.bump.outputs.RELEASE_TAG }}
+    secrets: inherit

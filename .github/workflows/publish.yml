@@ -1,0 +1,8 @@
+name: Publish Project
+on:
+  workflow_call:
+
+jobs:
+  github:
+    uses: ./.github/workflows/publish-to-github.yml
+    secrets: inherit
